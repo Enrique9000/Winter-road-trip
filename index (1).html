@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Houston &amp; Back — Dec 19&ndash;30 Road Trip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12161c;
+    --card:#1b212b;
+    --line:#2a313c;
+    --ink:#ece5d6;
+    --ink-dim:#8d94a2;
+    --ink-faint:#5c6473;
+    --rust:#c1502e;
+    --gold:#d9a441;
+    --teal:#4f9d95;
+    --pine:#7c9a63;
+    --coral:#e0824f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+  a:focus-visible, button:focus-visible{outline:2px solid var(--gold); outline-offset:3px;}
+
+  /* ---------- Horizontal scroller ---------- */
+  .scroller{
+    display:flex;
+    height:100vh;
+    width:100vw;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    scroll-behavior:smooth;
+    -webkit-overflow-scrolling:touch;
+  }
+  .panel{
+    flex:0 0 100vw;
+    width:100vw;
+    height:100vh;
+    scroll-snap-align:start;
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:56px 6vw 90px;
+  }
+  .panel-inner{max-width:960px; margin:0 auto;}
+
+  /* ---------- Nav controls ---------- */
+  .nav-btn{
+    position:fixed;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:20;
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:rgba(27,33,43,0.85);
+    color:var(--ink);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:20px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    backdrop-filter:blur(4px);
+  }
+  .nav-btn:hover{border-color:var(--gold); color:var(--gold);}
+  .nav-prev{left:16px;}
+  .nav-next{right:16px;}
+
+  .dots{
+    position:fixed;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    display:flex;
+    gap:8px;
+    z-index:20;
+    background:rgba(18,22,28,0.7);
+    padding:8px 12px;
+    border-radius:20px;
+    backdrop-filter:blur(4px);
+  }
+  .dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--line);
+    border:none;
+    cursor:pointer;
+    padding:0;
+  }
+  .dot.active{background:var(--gold); width:20px; border-radius:4px; transition:width 0.2s;}
+
+  .hint{
+    position:fixed;
+    top:20px;
+    right:24px;
+    z-index:20;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-faint);
+  }
+
+  /* ---------- Hero panel ---------- */
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 18px;
+  }
+  h1.title{
+    font-family:'Bebas Neue',sans-serif;
+    font-weight:400;
+    font-size:clamp(44px, 8vw, 92px);
+    line-height:0.92;
+    margin:0 0 22px;
+  }
+  h1.title .sub{color:var(--ink-dim);}
+  .hero-dek{max-width:560px; color:var(--ink-dim); font-size:17px; margin:0 0 40px;}
+  .hero-stats{display:flex; flex-wrap:wrap; gap:34px; margin-bottom:40px;}
+  .hero-stats .stat-label{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint); margin-bottom:6px;}
+  .hero-stats .stat-value{font-family:'Bebas Neue',sans-serif; font-size:34px;}
+  .swipe-hint{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--ink-dim);
+    border:1px solid var(--line);
+    display:inline-block;
+    padding:10px 16px;
+    border-radius:4px;
+  }
+
+  /* ---------- Elevation panel ---------- */
+  .elevation h2{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    color:var(--ink-faint);
+    margin:0 0 30px;
+    font-weight:500;
+  }
+  .elev-chart{width:100%;height:auto;overflow:visible;}
+  .elev-line{fill:none;stroke:var(--gold);stroke-width:2;}
+  .elev-fill{fill:url(#elevGrad);}
+  .elev-dot{fill:var(--bg);stroke:var(--gold);stroke-width:2;}
+  .elev-label{font-family:'IBM Plex Mono',monospace; font-size:10px; fill:var(--ink-dim);}
+  .elev-city{font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; fill:var(--ink);}
+
+  /* ---------- Day panel ---------- */
+  .day-eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--accent, var(--gold));
+    margin:0 0 10px;
+  }
+  .day-route{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(30px,5vw,46px);
+    letter-spacing:0.01em;
+    margin:0 0 20px;
+    line-height:1.05;
+  }
+  .day-route .arrow{color:var(--ink-faint); padding:0 8px; font-family:'Inter',sans-serif; font-weight:400;}
+
+  .hero-photo{
+    border-radius:5px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    margin-bottom:18px;
+    aspect-ratio:16/8;
+  }
+  .hero-photo img{width:100%;height:100%;object-fit:cover;}
+
+  .gallery{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .gallery a{display:block;}
+  .gallery img{
+    width:100%;
+    aspect-ratio:4/3;
+    object-fit:cover;
+    border-radius:4px;
+    border:1px solid var(--line);
+  }
+
+  .meta-row{
+    display:flex;
+    gap:32px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .meta-item .num{font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--accent, var(--gold));}
+  .meta-item .lbl{font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint);}
+
+  .legs{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--ink-dim);
+    border-left:2px solid var(--line);
+    padding-left:14px;
+    margin:0 0 18px;
+  }
+  .legs div{margin-bottom:5px;}
+
+  .weather-row{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    margin:0 0 18px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--ink-dim);
+  }
+  .weather-row .wx-place{color:var(--ink-faint); margin-right:5px;}
+  .weather-row .wx-temp{color:var(--ink);}
+
+  .day-note{font-size:15px; color:var(--ink-dim); margin:0 0 16px; max-width:640px;}
+
+  .day-flag{
+    display:inline-block;
+    margin:0 0 20px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--coral);
+    border:1px solid rgba(224,130,79,0.4);
+    background:rgba(224,130,79,0.08);
+    padding:6px 12px;
+    border-radius:3px;
+  }
+
+  .activities{
+    padding:18px 20px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:5px;
+    max-width:520px;
+  }
+  .activities .lbl{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--accent, var(--gold));
+    margin:0 0 10px;
+  }
+  .activities ul{margin:0; padding:0 0 0 18px; font-size:14px; color:var(--ink-dim);}
+  .activities li{margin-bottom:6px;}
+  .activities li:last-child{margin-bottom:0;}
+
+  .drive-photo{
+    border-radius:5px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    margin-bottom:8px;
+    aspect-ratio:16/6.5;
+  }
+  .drive-photo img{width:100%;height:100%;object-fit:cover;}
+  .drive-caption{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-faint);
+    margin:0 0 20px;
+  }
+
+  /* ---------- Basecamp panel ---------- */
+  .basecamp-body{
+    padding:26px 28px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    max-width:600px;
+  }
+  .basecamp-body h3{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:32px;
+    font-weight:400;
+    margin:0 0 10px;
+  }
+  .basecamp-body p{color:var(--ink-dim); font-size:15px; margin:0 0 16px;}
+
+  /* ---------- Footer panel ---------- */
+  .footer-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:28px; margin-bottom:36px;}
+  @media(min-width:600px){.footer-grid{grid-template-columns:repeat(4,1fr);}}
+  .footer-grid .stat-label{font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:8px;}
+  .footer-grid .stat-value{font-family:'Bebas Neue',sans-serif; font-size:38px;}
+  .footer-note{color:var(--ink-faint); font-size:13px; max-width:640px; line-height:1.6;}
+
+  @media(max-width:640px){
+    .panel{padding:40px 20px 100px;}
+    .nav-btn{width:40px; height:40px;}
+    .gallery{grid-template-columns:repeat(3,1fr); gap:6px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .scroller{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<p class="hint">Scroll or swipe &larr; &rarr; to move through the trip</p>
+<button class="nav-btn nav-prev" id="prevBtn" aria-label="Previous day">&#8592;</button>
+<button class="nav-btn nav-next" id="nextBtn" aria-label="Next day">&#8594;</button>
+<div class="dots" id="dots"></div>
+
+<div class="scroller" id="scroller">
+
+  <!-- Panel 0: Hero -->
+  <section class="panel">
+    <div class="panel-inner">
+      <p class="eyebrow">Dec 19 &ndash; Dec 30 &middot; 12 days &middot; 8 states</p>
+      <h1 class="title">HOUSTON<br><span class="sub">to the west &amp; back</span></h1>
+      <p class="hero-dek">Panhandle to the Rockies, over the Sierra in winter, down the Pacific coast, and home through the Trans-Pecos.</p>
+      <div class="hero-stats">
+        <div><div class="stat-label">Total driving</div><div class="stat-value">4,576 mi</div></div>
+        <div><div class="stat-label">Time behind the wheel</div><div class="stat-value">~73 hrs</div></div>
+        <div><div class="stat-label">Driving days</div><div class="stat-value">8</div></div>
+        <div><div class="stat-label">Elevation swing</div><div class="stat-value">50&ndash;6,225 ft</div></div>
+      </div>
+      <span class="swipe-hint">Swipe or scroll left &rarr; to start Day 1</span>
+    </div>
+  </section>
+
+  <!-- Panel 1: Elevation -->
+  <section class="panel elevation">
+    <div class="panel-inner">
+      <h2>Route elevation, sea level to the Sierra and back</h2>
+      <svg class="elev-chart" viewBox="0 0 1040 220" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="elevGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#d9a441" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#d9a441" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon class="elev-fill" points="0,190 0,189 104,97 208,36 312,82 416,32 520,88 624,189 728,38 832,189 936,96 1040,189 1040,190" />
+        <polyline class="elev-line" points="0,189 104,97 208,36 312,82 416,32 520,88 624,189 728,38 832,189 936,96 1040,189" />
+        <g>
+          <circle class="elev-dot" cx="0" cy="189" r="4"/>
+          <circle class="elev-dot" cx="104" cy="97" r="4"/>
+          <circle class="elev-dot" cx="208" cy="36" r="4"/>
+          <circle class="elev-dot" cx="312" cy="82" r="4"/>
+          <circle class="elev-dot" cx="416" cy="32" r="4"/>
+          <circle class="elev-dot" cx="520" cy="88" r="4"/>
+          <circle class="elev-dot" cx="624" cy="189" r="4"/>
+          <circle class="elev-dot" cx="728" cy="38" r="4"/>
+          <circle class="elev-dot" cx="832" cy="189" r="4"/>
+          <circle class="elev-dot" cx="936" cy="96" r="4"/>
+          <circle class="elev-dot" cx="1040" cy="189" r="4"/>
+        </g>
+        <g text-anchor="middle">
+          <text class="elev-city" x="0" y="207">Houston</text>
+          <text class="elev-city" x="104" y="207">Amarillo</text>
+          <text class="elev-city" x="208" y="207">Colorado Sp.</text>
+          <text class="elev-city" x="312" y="207">Salt Lake City</text>
+          <text class="elev-city" x="416" y="207">Lake Tahoe</text>
+          <text class="elev-city" x="520" y="207">Yosemite</text>
+          <text class="elev-city" x="624" y="207">Monterey</text>
+          <text class="elev-city" x="728" y="207">Sequoia</text>
+          <text class="elev-city" x="832" y="207">San Diego</text>
+          <text class="elev-city" x="936" y="207">El Paso</text>
+          <text class="elev-city" x="1040" y="207">Houston</text>
+        </g>
+        <g text-anchor="middle">
+          <text class="elev-label" x="0" y="182">50ft</text>
+          <text class="elev-label" x="104" y="90">3,605ft</text>
+          <text class="elev-label" x="208" y="29">6,035ft</text>
+          <text class="elev-label" x="312" y="75">4,226ft</text>
+          <text class="elev-label" x="416" y="25">6,225ft</text>
+          <text class="elev-label" x="520" y="81">4,000ft</text>
+          <text class="elev-label" x="624" y="182">50ft</text>
+          <text class="elev-label" x="728" y="31">~6,000ft</text>
+          <text class="elev-label" x="832" y="182">50ft</text>
+          <text class="elev-label" x="936" y="89">3,740ft</text>
+          <text class="elev-label" x="1040" y="182">50ft</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Panel 2: Day 1 Amarillo -->
+  <section class="panel" style="--accent:#c1502e;">
+    <div class="panel-inner">
+      <p class="day-eyebrow">Day 1 &middot; Friday, Dec 19</p>
+      <h3 class="day-route">Houston <span class="arrow">&rarr;</span> Amarillo, TX</h3>
+      <div class="hero-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Cadillac_Ranch%2C_distant.jpg?width=1400" alt="Cadillac Ranch near Amarillo, Texas" loading="lazy"></div>
+      <div class="gallery">
+        <a href="https://commons.wikimedia.org/wiki/File:Cadillac_Ranch.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Cadillac_Ranch.jpg?width=600" alt="Cadillac Ranch sculpture" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Caddy_Ranch,_Tx_(27296601224).jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Caddy_Ranch%2C_Tx_(27296601224).jpg?width=600" alt="Cadillacs painted with graffiti" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Hiking_to_Cadillac_Ranch_(6591298137).jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Hiking_to_Cadillac_Ranch_(6591298137).jpg?width=600" alt="Visitors walking out to Cadillac Ranch" loading="lazy"></a>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="num">~600 mi</div><div class="lbl">Distance</div></div>
+        <div class="meta-item"><div class="num">~9 hrs</div><div class="lbl">Drive time</div></div>
+      </div>
+      <div class="weather-row"><span class="wx-place">Amarillo avg Dec 19:</span><span class="wx-temp">50&deg;F / 28&deg;F</span></div>
+      <p class="day-note">Straight up I-45 and US-287 through the Piney Woods and out onto the High Plains. Cadillac Ranch sits just off I-40 west of town if there's daylight left &mdash; bring a spray can.</p>
+      <div class="activities">
+        <p class="lbl">While you're in Amarillo</p>
+        <ul>
+          <li>Cadillac Ranch &mdash; free, open 24/7, best late afternoon light</li>
+          <li>Palo Duro Canyon State Park, ~25 min south of town</li>
+          <li>Big Texan Steak Ranch &mdash; the 72oz steak challenge, right on I-40</li>
+          <li>Historic Route 66 district downtown for a walk after dinner</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel 3: Day 2 Colorado Springs -->
+  <section class="panel" style="--accent:#d9a441;">
+    <div class="panel-inner">
+      <p class="day-eyebrow">Day 2 &middot; Saturday, Dec 20</p>
+      <h3 class="day-route">Amarillo <span class="arrow">&rarr;</span> Colorado Springs, CO</h3>
+      <div class="hero-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Garden_of_the_Gods.JPG?width=1400" alt="Garden of the Gods, Colorado Springs" loading="lazy"></div>
+      <div class="gallery">
+        <a href="https://commons.wikimedia.org/wiki/File:Gardenofthegods.JPG" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Gardenofthegods.JPG?width=600" alt="Rock formation at Garden of the Gods" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Balancing_Rock,_Garden_of_Gods_(16795998207).jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Balancing_Rock%2C_Garden_of_Gods_(16795998207).jpg?width=600" alt="Balancing Rock, Garden of the Gods" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Garden_of_the_Gods_View.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Garden_of_the_Gods_View.jpg?width=600" alt="Garden of the Gods with Pikes Peak behind it" loading="lazy"></a>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="num">~363 mi</div><div class="lbl">Distance</div></div>
+        <div class="meta-item"><div class="num">~5.5 hrs</div><div class="lbl">Drive time</div></div>
+      </div>
+      <div class="weather-row"><span class="wx-place">Colorado Springs avg Dec 20:</span><span class="wx-temp">42&deg;F / 19&deg;F</span></div>
+      <p class="day-note">The shortest driving day of the trip &mdash; north on US-287 into Colorado, climbing from the Panhandle onto the Front Range. Garden of the Gods is free and a five-minute detour off the highway.</p>
+      <div class="activities">
+        <p class="lbl">While you're in Colorado Springs</p>
+        <ul>
+          <li>Garden of the Gods &mdash; free, walk or drive through the rock formations</li>
+          <li>Pikes Peak &mdash; summit by car or Cog Railway, weather permitting</li>
+          <li>Manitou Springs for dinner &mdash; walkable, mineral springs, mountain-town feel</li>
+          <li>Cave of the Winds or Seven Falls for an indoor/outdoor option</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel 4: Day 3 Salt Lake City -->
+  <section class="panel" style="--accent:#4f9d95;">
+    <div class="panel-inner">
+      <p class="day-eyebrow">Day 3 &middot; Sunday, Dec 21</p>
+      <h3 class="day-route">Colorado Springs <span class="arrow">&rarr;</span> Salt Lake City, UT</h3>
+      <div class="hero-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Salt_Lake_Temple%2C_Utah_-_Sept_2004-2.jpg?width=1400" alt="The Salt Lake Temple at Temple Square" loading="lazy"></div>
+      <div class="gallery">
+        <a href="https://commons.wikimedia.org/wiki/File:Salt_Lake_City_skyline_banner.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Salt_Lake_City_skyline_banner.jpg?width=600" alt="Salt Lake City skyline" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Christus_statue_temple_square_salt_lake_city.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Christus_statue_temple_square_salt_lake_city.jpg?width=600" alt="Christus statue at Temple Square" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Window_on_Temple_Square.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Window_on_Temple_Square.jpg?width=600" alt="Temple Square grounds" loading="lazy"></a>
+      </div>
+      <div class="legs">
+        <div>Denver &rarr; Rawlins, WY &mdash; via I-25 / I-80</div>
+        <div>Rawlins &rarr; Salt Lake City &mdash; via I-80 W</div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="num">~580 mi</div><div class="lbl">Distance</div></div>
+        <div class="meta-item"><div class="num">~8.75 hrs</div><div class="lbl">Drive time</div></div>
+      </div>
+      <div class="weather-row"><span class="wx-place">Salt Lake City avg Dec 21:</span><span class="wx-temp">36&deg;F / 22&deg;F</span></div>
+      <div class="drive-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Interstate_80_in_Wyoming_Snow.jpg?width=1400" alt="Interstate 80 crossing snowy southern Wyoming" loading="lazy"></div>
+      <p class="drive-caption">The drive &mdash; I-80 across southern Wyoming</p>
+      <p class="day-note">The long haul across southern Wyoming on I-80 &mdash; open, exposed, and the one stretch on this trip worth checking WYDOT road conditions for before you leave.</p>
+      <span class="day-flag">Watch conditions: I-80 Wyoming, winter</span>
+      <div class="activities">
+        <p class="lbl">While you're in Salt Lake City</p>
+        <ul>
+          <li>Temple Square &mdash; free, lit for the holidays through December</li>
+          <li>Natural History Museum of Utah, if you want time indoors</li>
+          <li>Utah State Capitol, short walk from Temple Square with valley views</li>
+          <li>City Creek Center for dinner and a stroll before bed</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel 5: Day 4 Lake Tahoe -->
+  <section class="panel" style="--accent:#4f9d95;">
+    <div class="panel-inner">
+      <p class="day-eyebrow">Day 4 &middot; Monday, Dec 22</p>
+      <h3 class="day-route">Salt Lake City <span class="arrow">&rarr;</span> South Lake Tahoe, CA</h3>
+      <div class="hero-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Lake_Tahoe_in_winter_seen_from_Homewood%2C_California.jpg?width=1400" alt="Lake Tahoe covered in winter snow" loading="lazy"></div>
+      <div class="gallery">
+        <a href="https://commons.wikimedia.org/wiki/File:Snowy_hillside_in_Tahoe_National_Forest.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Snowy_hillside_in_Tahoe_National_Forest.jpg?width=600" alt="Snowy hillside in Tahoe National Forest" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Tahoe.JPG" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Tahoe.JPG?width=600" alt="Lake Tahoe from the slopes above" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Aerial_photo_of_Lake_Tahoe_(35035746882).jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Aerial_photo_of_Lake_Tahoe_(35035746882).jpg?width=600" alt="Aerial photo of Lake Tahoe" loading="lazy"></a>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="num">~577 mi</div><div class="lbl">Distance</div></div>
+        <div class="meta-item"><div class="num">~8.75 hrs</div><div class="lbl">Drive time</div></div>
+      </div>
+      <div class="weather-row"><span class="wx-place">S. Lake Tahoe avg Dec 22:</span><span class="wx-temp">38&deg;F / 21&deg;F, snow likely</span></div>
+      <div class="drive-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Bonneville_Salt_Flats.jpg?width=1400" alt="The Bonneville Salt Flats along I-80 in western Utah" loading="lazy"></div>
+      <p class="drive-caption">The drive &mdash; I-80 past the Bonneville Salt Flats</p>
+      <p class="day-note">Straight across Nevada on I-80 &mdash; the Bonneville Salt Flats, then a whole lot of Great Basin, before climbing into the Sierra near Reno for the final push over to the lake.</p>
+      <div class="activities">
+        <p class="lbl">While you're in South Lake Tahoe</p>
+        <ul>
+          <li>Heavenly Gondola for a lake overlook, even without skiing</li>
+          <li>Heavenly or Sierra-at-Tahoe if you want to ski or ride a day</li>
+          <li>Emerald Bay overlook on the west shore &mdash; short drive, big view</li>
+          <li>Check chain requirements for Hwy 50/89 before heading out</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel 6: Day 5 Yosemite + Monterey -->
+  <section class="panel" style="--accent:#7c9a63;">
+    <div class="panel-inner">
+      <p class="day-eyebrow">Day 5 &middot; Tuesday, Dec 23</p>
+      <h3 class="day-route">S. Lake Tahoe <span class="arrow">&rarr;</span> Yosemite <span class="arrow">&rarr;</span> Monterey, CA</h3>
+      <div class="hero-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Yosemite_Valley_in_Winter.jpg?width=1400" alt="Yosemite Valley blanketed in snow" loading="lazy"></div>
+      <div class="gallery">
+        <a href="https://commons.wikimedia.org/wiki/File:Half_dome_yosemite_nationalpark.JPG" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Half_dome_yosemite_nationalpark.JPG?width=600" alt="Half Dome, Yosemite" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Clearing_Winter_Storm,_Yosemite_Valley.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Clearing_Winter_Storm%2C_Yosemite_Valley.jpg?width=600" alt="Clearing winter storm over Yosemite Valley" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Monterey_Bay_Aquarium_exterior_August_2016.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Monterey_Bay_Aquarium_exterior_August_2016.jpg?width=600" alt="Monterey Bay Aquarium exterior" loading="lazy"></a>
+      </div>
+      <div class="legs">
+        <div>Tahoe &rarr; Yosemite Valley &mdash; ~200 mi, ~4.5 hrs</div>
+        <div>Yosemite &rarr; Monterey &mdash; ~210 mi, ~4.5 hrs</div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="num">~410 mi</div><div class="lbl">Distance</div></div>
+        <div class="meta-item"><div class="num">~9 hrs</div><div class="lbl">Drive time</div></div>
+      </div>
+      <div class="weather-row">
+        <span><span class="wx-place">Yosemite Valley avg Dec 23:</span><span class="wx-temp">46&deg;F / 27&deg;F</span></span>
+        <span><span class="wx-place">Monterey avg Dec 23:</span><span class="wx-temp">58&deg;F / 46&deg;F</span></span>
+      </div>
+      <div class="drive-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/2023-01_Carson_Spur_CA-88.jpg?width=1400" alt="Sierra Nevada mountain highway near Carson Pass" loading="lazy"></div>
+      <p class="drive-caption">The drive &mdash; over the Sierra, then down to the coast</p>
+      <p class="day-note">Tioga Pass closes for winter, so this runs the long way &mdash; down toward Sacramento, then in through the Big Oak Flat / Hwy&nbsp;120 entrance on the park's west side.</p>
+      <span class="day-flag">Tioga Pass closed in winter &mdash; check chain requirements</span>
+      <div class="activities">
+        <p class="lbl">While you're passing through</p>
+        <ul>
+          <li>Tunnel View &mdash; the classic valley overlook, right off Hwy 41</li>
+          <li>Bridalveil Fall, an easy short walk from the parking area</li>
+          <li>Monterey Bay Aquarium, if you get in with time before it closes</li>
+          <li>Cannery Row for dinner and a walk along the water</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel 7: Day 6 Sequoia + San Diego -->
+  <section class="panel" style="--accent:#7c9a63;">
+    <div class="panel-inner">
+      <p class="day-eyebrow">Day 6 &middot; Wednesday, Dec 24</p>
+      <h3 class="day-route">Monterey <span class="arrow">&rarr;</span> Sequoia <span class="arrow">&rarr;</span> San Diego, CA</h3>
+      <div class="hero-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/The_General_Sherman_tree_-_Sequoia_National_Park_(33241877800).jpg?width=1400" alt="The General Sherman giant sequoia tree" loading="lazy"></div>
+      <div class="gallery">
+        <a href="https://commons.wikimedia.org/wiki/File:General_Sherman,_Sequoia_National_Park.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/General_Sherman%2C_Sequoia_National_Park.jpg?width=600" alt="General Sherman Tree" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:General_Sherman_tree_looking_up.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/General_Sherman_tree_looking_up.jpg?width=600" alt="Looking up the General Sherman Tree" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Skyline_at_sunset_from_harbor_island.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Skyline_at_sunset_from_harbor_island.jpg?width=600" alt="San Diego skyline at sunset" loading="lazy"></a>
+      </div>
+      <div class="legs">
+        <div>Monterey &rarr; Sequoia (Giant Forest) &mdash; ~237 mi, ~4.5 hrs</div>
+        <div>Sequoia &rarr; San Diego &mdash; ~340 mi, ~6.25 hrs</div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="num">~577 mi</div><div class="lbl">Distance</div></div>
+        <div class="meta-item"><div class="num">~10.75 hrs</div><div class="lbl">Drive time</div></div>
+      </div>
+      <div class="weather-row">
+        <span><span class="wx-place">Sequoia (Giant Forest) avg Dec 24:</span><span class="wx-temp">37&deg;F / 18&deg;F, snow likely</span></span>
+        <span><span class="wx-place">San Diego avg Dec 24:</span><span class="wx-temp">65&deg;F / 49&deg;F</span></span>
+      </div>
+      <p class="day-note">The heaviest day of the trip, and it lands on Christmas Eve. Worth an early start out of Monterey &mdash; General Sherman by mid-morning, then the long run south past LA into San Diego for the night.</p>
+      <span class="day-flag">Longest day &mdash; consider an earlier Monterey departure</span>
+      <div class="activities">
+        <p class="lbl">While you're in Sequoia</p>
+        <ul>
+          <li>General Sherman Tree &mdash; short paved walk from the main lot</li>
+          <li>Moro Rock, if you have an extra hour and don't mind stairs</li>
+          <li>Giant Forest Museum for context before or after the walk</li>
+          <li>Fill up on gas in Three Rivers or Lemon Cove before entering the park</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel 8: Basecamp -->
+  <section class="panel" style="--accent:#e0824f;">
+    <div class="panel-inner">
+      <p class="day-eyebrow">Dec 24 &ndash; Dec 29</p>
+      <h3 class="day-route">San Diego basecamp</h3>
+      <div class="hero-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sandiego_skyline_at_night.JPG?width=1400" alt="San Diego skyline at night from Coronado" loading="lazy"></div>
+      <div class="gallery">
+        <a href="https://commons.wikimedia.org/wiki/File:San_Diego_Skyline_at_Night.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/San_Diego_Skyline_at_Night.jpg?width=600" alt="Downtown San Diego skyline at night" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:San_Diego_skyline_18.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/San_Diego_skyline_18.jpg?width=600" alt="San Diego skyline" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Skyline_at_sunset_from_harbor_island.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Skyline_at_sunset_from_harbor_island.jpg?width=600" alt="San Diego skyline at sunset" loading="lazy"></a>
+      </div>
+      <div class="basecamp-body">
+        <h3>Five nights over Christmas</h3>
+        <p>No drives scheduled Dec 25&ndash;28. Room here to slot in Balboa Park, the Zoo, La Jolla, or a day across the border.</p>
+        <div class="weather-row" style="margin:0;"><span class="wx-place">San Diego avg, late Dec:</span><span class="wx-temp">65&deg;F / 49&deg;F, mostly sunny</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel 9: Day 7 El Paso -->
+  <section class="panel" style="--accent:#e0824f;">
+    <div class="panel-inner">
+      <p class="day-eyebrow">Day 7 &middot; Tuesday, Dec 29</p>
+      <h3 class="day-route">San Diego <span class="arrow">&rarr;</span> El Paso, TX</h3>
+      <div class="hero-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Snow_Franklin_Mountains_El_Paso_Texas_Dec_01_2009_IMG_1859.JPG?width=1400" alt="Snow on the Franklin Mountains above El Paso" loading="lazy"></div>
+      <div class="gallery">
+        <a href="https://commons.wikimedia.org/wiki/File:El_Paso_Skyline.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/El_Paso_Skyline.jpg?width=600" alt="El Paso skyline" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Franklin_Mountains_and_Austin_High_School,_El_Paso.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Franklin_Mountains_and_Austin_High_School%2C_El_Paso.jpg?width=600" alt="Franklin Mountains above El Paso" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Sonoran_Desert_Arizona.JPG" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sonoran_Desert_Arizona.JPG?width=600" alt="Sonoran Desert landscape" loading="lazy"></a>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="num">~724 mi</div><div class="lbl">Distance</div></div>
+        <div class="meta-item"><div class="num">~10.3 hrs</div><div class="lbl">Drive time</div></div>
+      </div>
+      <div class="weather-row"><span class="wx-place">El Paso avg Dec 29:</span><span class="wx-temp">56&deg;F / 34&deg;F</span></div>
+      <div class="drive-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Van_horn_texas.jpg?width=1400" alt="The West Texas desert highway near Van Horn" loading="lazy"></div>
+      <p class="drive-caption">The drive &mdash; I-8 and I-10 through the Sonoran Desert and West Texas</p>
+      <p class="day-note">East on I-8 through the Imperial Valley, then I-10 across the Arizona desert &mdash; Yuma, Tucson &mdash; and into West Texas as the Franklins come into view.</p>
+      <div class="activities">
+        <p class="lbl">While you're in El Paso</p>
+        <ul>
+          <li>Franklin Mountains State Park, if you get in with light left</li>
+          <li>Chamizal National Memorial for a quick stop near downtown</li>
+          <li>El Paso Mission Trail, three centuries-old missions south of the city</li>
+          <li>Hueco Tanks, if you're into rock climbing or petroglyphs</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel 10: Day 8 Houston -->
+  <section class="panel" style="--accent:#c1502e;">
+    <div class="panel-inner">
+      <p class="day-eyebrow">Day 8 &middot; Wednesday, Dec 30</p>
+      <h3 class="day-route">El Paso <span class="arrow">&rarr;</span> Houston, TX</h3>
+      <div class="hero-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Downtown_Houston_Skyline_Night.JPG?width=1400" alt="Downtown Houston skyline at night" loading="lazy"></div>
+      <div class="gallery">
+        <a href="https://commons.wikimedia.org/wiki/File:Downtown_Houston_7.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Downtown_Houston_7.jpg?width=600" alt="Downtown Houston skyline" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Texas_Medical_Center_skyline_in_Houston.JPG" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Texas_Medical_Center_skyline_in_Houston.JPG?width=600" alt="Texas Medical Center skyline" loading="lazy"></a>
+        <a href="https://commons.wikimedia.org/wiki/File:Texas_Hill_Country_Near_I-10,_2004.jpg" target="_blank" rel="noopener"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Texas_Hill_Country_Near_I-10%2C_2004.jpg?width=600" alt="Texas Hill Country along I-10" loading="lazy"></a>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="num">~747 mi</div><div class="lbl">Distance</div></div>
+        <div class="meta-item"><div class="num">~10.5 hrs</div><div class="lbl">Drive time</div></div>
+      </div>
+      <div class="weather-row"><span class="wx-place">Houston avg Dec 30:</span><span class="wx-temp">64&deg;F / 48&deg;F</span></div>
+      <div class="drive-photo"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Texas_Hill_Country_187N-2.JPG?width=1400" alt="Texas Hill Country landscape" loading="lazy"></div>
+      <p class="drive-caption">The drive &mdash; I-10 through the Hill Country, Kerrville to San Antonio</p>
+      <p class="day-note">The full length of I-10 across Texas &mdash; Van Horn, Fort Stockton, the Hill Country around Kerrville, then home. Back-to-back with Day 7; a Fort Stockton or San Antonio overnight would split it in two if two 10+ hour days in a row feels like too much.</p>
+      <span class="day-flag">Back-to-back with Day 7 &mdash; consider splitting</span>
+    </div>
+  </section>
+
+  <!-- Panel 11: Footer summary -->
+  <section class="panel">
+    <div class="panel-inner">
+      <p class="eyebrow">Trip summary</p>
+      <h1 class="title" style="font-size:clamp(36px,6vw,64px);">That's the<br><span class="sub">whole loop.</span></h1>
+      <div class="footer-grid">
+        <div><div class="stat-label">Total distance</div><div class="stat-value">4,576 mi</div></div>
+        <div><div class="stat-label">Total drive time</div><div class="stat-value">~73 hrs</div></div>
+        <div><div class="stat-label">States crossed</div><div class="stat-value">8</div></div>
+        <div><div class="stat-label">Nights in San Diego</div><div class="stat-value">5</div></div>
+      </div>
+      <p class="footer-note">Mileage and drive times are point-to-point highway estimates without stops &mdash; actual time will run longer with gas, food, and winter conditions in Wyoming, Nevada, and the Sierra. Dec 23&ndash;24 and Dec 29&ndash;30 are the heaviest pairs of driving days; build in slack where you can. Weather figures are long-term late-December averages (high/low), not a forecast &mdash; check conditions closer to departure, especially for I-80 in Wyoming and the Sierra passes.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const scroller = document.getElementById('scroller');
+  const panels = Array.from(scroller.querySelectorAll('.panel'));
+  const dotsWrap = document.getElementById('dots');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  panels.forEach((p, i) => {
+    const d = document.createElement('button');
+    d.className = 'dot';
+    d.setAttribute('aria-label', 'Go to panel ' + (i + 1));
+    d.addEventListener('click', () => scrollToPanel(i));
+    dotsWrap.appendChild(d);
+  });
+  const dots = Array.from(dotsWrap.querySelectorAll('.dot'));
+
+  function currentIndex(){
+    const x = scroller.scrollLeft;
+    let idx = 0, min = Infinity;
+    panels.forEach((p, i) => {
+      const diff = Math.abs(p.offsetLeft - x);
+      if(diff < min){ min = diff; idx = i; }
+    });
+    return idx;
+  }
+
+  function scrollToPanel(i){
+    i = Math.max(0, Math.min(panels.length - 1, i));
+    scroller.scrollTo({left: panels[i].offsetLeft, behavior: 'smooth'});
+  }
+
+  function updateDots(){
+    const idx = currentIndex();
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+
+  scroller.addEventListener('scroll', () => {
+    window.requestAnimationFrame(updateDots);
+  });
+
+  prevBtn.addEventListener('click', () => scrollToPanel(currentIndex() - 1));
+  nextBtn.addEventListener('click', () => scrollToPanel(currentIndex() + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowRight'){ scrollToPanel(currentIndex() + 1); }
+    if(e.key === 'ArrowLeft'){ scrollToPanel(currentIndex() - 1); }
+  });
+
+  // Translate plain vertical mouse-wheel input into horizontal movement,
+  // while leaving native trackpad horizontal swipes (deltaX) untouched.
+  scroller.addEventListener('wheel', (e) => {
+    if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){
+      e.preventDefault();
+      scroller.scrollLeft += e.deltaY;
+    }
+  }, {passive:false});
+
+  updateDots();
+</script>
+
+</body>
+</html>
